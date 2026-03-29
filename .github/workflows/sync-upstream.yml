@@ -1,0 +1,33 @@
+name: Sync Fork with Upstream
+
+on:
+  schedule:
+    - cron: "0 */48 * * *"   # Every 48 hours
+  workflow_dispatch:          # Manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/STMicroelectronics/STM32CubeH7
+          git fetch upstream
+
+      - name: Merge upstream master into fork master
+        run: |
+          git checkout master
+          git merge upstream/master --no-edit
+
+      - name: Push updated master to fork
+        run: git push
+
+      - name: Sync tags from upstream
+        run: |
+          git push --tags origin master
